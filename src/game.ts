@@ -1,5 +1,7 @@
 import 'phaser';
 
+import { createStrokeText } from "./utils/text";
+
 export default class Demo extends Phaser.Scene
 {
     constructor ()
@@ -9,30 +11,64 @@ export default class Demo extends Phaser.Scene
 
     preload ()
     {
-        this.load.image('logo', 'assets/phaser3-logo.png');
-        this.load.image('libs', 'assets/libs.png');
-        this.load.glsl('bundle', 'assets/plasma-bundle.glsl.js');
-        this.load.glsl('stars', 'assets/starfields.glsl.js');
+        // this.load.audio("theme", [musicFile]);
+        this.load.image("dude", 'assets/dude.png');
+        this.load.atlas('atlas', "assets/ld48-a.png", 'assets/atlas.json');
     }
+
+    player : any
+    cursors: any
 
     create ()
     {
-        this.add.shader('RGB Shift Field', 0, 0, 800, 600).setOrigin(0);
 
-        this.add.shader('Plasma', 0, 412, 800, 172).setOrigin(0);
+        const dude = this.add.image(100, 550, "dude") //.setScale(2);
+        this.player = this.physics.add.image(200, 200, 'atlas', 'sub');
+        this.player.setCollideWorldBounds(true);
+      
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.cursors = this.input.keyboard.addKeys(
+          {up:Phaser.Input.Keyboard.KeyCodes.W,
+          down:Phaser.Input.Keyboard.KeyCodes.S,
+          left:Phaser.Input.Keyboard.KeyCodes.A,
+          right:Phaser.Input.Keyboard.KeyCodes.D});
 
-        this.add.image(400, 300, 'libs');
-
-        const logo = this.add.image(400, 70, 'logo');
+        createStrokeText({thiz: this, x: 100, y: 20, text: "DEEPER BLUE", style: {
+          fontFamily: "Arial Black",
+          fontSize: 74,
+          color: "white"
+        }, stroke: {color: "blue", size: 6}});
 
         this.tweens.add({
-            targets: logo,
-            y: 350,
+            targets: dude,
+            y: 500,
             duration: 1500,
             ease: 'Sine.inOut',
             yoyo: true,
             repeat: -1
         })
+    }
+
+    speed = 300;
+
+    update() {
+        this.updatePlayerVelocity({player: this.player, cursors: this.cursors, speed: this.speed});
+    }
+
+    private updatePlayerVelocity({player, cursors, speed}) {
+        player.setVelocity(0);
+
+        if (cursors.left.isDown) {
+            player.setVelocityX(-speed);
+        } else if (this.cursors.right.isDown) {
+            player.setVelocityX(speed);
+        }
+
+        if (cursors.up.isDown) {
+            player.setVelocityY(-speed);
+        } else if (cursors.down.isDown) {
+            player.setVelocityY(speed);
+        }
     }
 }
 
@@ -41,7 +77,16 @@ const config = {
     backgroundColor: '#125555',
     width: 800,
     height: 600,
-    scene: Demo
+    scene: Demo,
+    physics: {
+        default: 'arcade',
+        arcade: {
+            debug: true
+        }
+      },
+    audio: {
+        disableWebAudio: true
+    }
 };
 
 const game = new Phaser.Game(config);
