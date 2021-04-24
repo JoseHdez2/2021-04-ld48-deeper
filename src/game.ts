@@ -39,6 +39,34 @@ export default class Demo extends Phaser.Scene
           color: "white"
         }, stroke: {color: "blue", size: 6}});
 
+        var particles = this.add.particles('atlas');
+
+        var emitter = particles.createEmitter({
+            frame: 'bubble',
+            speed: {
+                onEmit: function (particle, key, t, value)
+                {
+                    return this.player.body.speed;
+                }
+            },
+            lifespan: {
+                onEmit: function (particle, key, t, value)
+                {
+                    return Phaser.Math.Percent(this.player.body.speed, 0, 300) * 20000;
+                }
+            },
+            alpha: {
+                onEmit: function (particle, key, t, value)
+                {
+                    return Phaser.Math.Percent(this.player.body.speed, 0, 300) * 1000;
+                }
+            },
+            scale: { start: 1.0, end: 0 },
+            blendMode: 'ADD'
+        });
+
+        emitter.startFollow(this.player);
+
         this.tweens.add({
             targets: dude,
             y: 500,
