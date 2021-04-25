@@ -1,4 +1,5 @@
 import 'phaser';
+import { Bullet } from './Bullet';
 import { setupMinimap } from './minimap';
 
 import { createStrokeText } from "./utils/text";
@@ -25,6 +26,8 @@ export default class Demo extends Phaser.Scene
     playerDataText : Phaser.GameObjects.Text
     isPaused = false
 
+    bullets
+
     // pauseLayer : Phaser.GameObjects.Layer
 
     create ()
@@ -40,7 +43,13 @@ export default class Demo extends Phaser.Scene
         uiLayer.add(this.posText);
         uiLayer.add(this.playerDataText);
 
-        this.player = this.matter.add.image(200, 200, 'atlas', 'sub');
+        this.player = this.matter.add.image(200, 200, 'atlas', 'sub').setScale(3);
+
+        // this.bullets = this.physics.add.group({
+        //     classType: Bullet,
+        //     maxSize: 30,
+        //     runChildUpdate: true
+        // });
 
         // this.player.setCollideWorldBounds(true);
 
@@ -49,7 +58,7 @@ export default class Demo extends Phaser.Scene
             let x = Phaser.Math.Between(-800, 800);
             let y = Phaser.Math.Between(-800, 800);
 
-            gameplayLayer.add(this.make.sprite({ x, y, key: 'atlas', frame: 'bubble' }));
+            gameplayLayer.add(this.make.sprite({ x, y, key: 'atlas', frame: 'jellyfish' }));
         }
 
         this.setupWasdCursors();
@@ -71,7 +80,7 @@ export default class Demo extends Phaser.Scene
         // }, stroke: {color: "blue", size: 6}});
         // addVerticalSineTweens({scene: this, target: titleText, y: 100, duration: 10_000});
 
-        setupMinimap(this, this.player, mainCam, uiLayer, pauseLayer);
+        setupMinimap(0.15, this, this.player, mainCam, uiLayer, pauseLayer);
 
         // this.physics.add.overlap(bullets, enemies, this.hitEnemy, this.checkBulletVsEnemy, this);
 
@@ -139,6 +148,7 @@ export default class Demo extends Phaser.Scene
 }
 
 const config = {
+    antialias: false,
     type: Phaser.AUTO,
     backgroundColor: '#125555',
     width: 900,
@@ -150,7 +160,8 @@ const config = {
             gravity: {
                 x: 0,
                 y: 0
-            }
+            },
+            debug: true
         }
     },
     audio: {
