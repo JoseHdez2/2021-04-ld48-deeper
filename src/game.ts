@@ -13,8 +13,8 @@ export default class Demo extends Phaser.Scene {
 
     preload ()
     {
-        // this.load.audio("theme", [musicFile]);
-        //this.load.audio('dmg', 'assets/audio/dash1.wav');
+        //this.load.audio("theme", [musicFile]);
+        // this.load.audio('dmg', 'assets/audio/dash1.wav');
         this.load.image("dude", 'assets/dude.png');
         this.load.atlas('atlas', "assets/ld48-a.png", 'assets/atlas.json');
     }
@@ -28,7 +28,7 @@ export default class Demo extends Phaser.Scene {
     isPaused = false
 
     bullets
-    //dmgSound = null;
+    // dmgSound = null
 
     // pauseLayer : Phaser.GameObjects.Layer
 
@@ -39,7 +39,7 @@ export default class Demo extends Phaser.Scene {
         const gameplayLayer = this.add.layer();
         const uiLayer = this.add.layer().setDepth(10);
         const pauseLayer = this.add.layer().setDepth(20);
-        //this.dmgSound = this.sound.add('dmg');
+        // this.dmgSound = this.sound.add('dmg');
 
         uiLayer.add(this.add.text(10, 10, 'DEEPER BLUE DEMO v0.1').setScrollFactor(0));
         this.posText = this.add.text(10, 25, `x: ???, y: ???`).setScrollFactor(0);
@@ -92,7 +92,7 @@ export default class Demo extends Phaser.Scene {
 
         // this.physics.add.overlap(bullets, enemies, this.hitEnemy, this.checkBulletVsEnemy, this);
 
-        this.setupInputEvents(pauseLayer);
+        this.setupInputEvents(this, pauseLayer);
 
         this.player.setFixedRotation();
         this.player.setFrictionAir(0.05);
@@ -101,17 +101,19 @@ export default class Demo extends Phaser.Scene {
 
     playerSpeed = 0.2;
 
-    private setupInputEvents(pauseLayer: Phaser.GameObjects.Layer) {
+    private setupInputEvents(scene: Phaser.Scene, pauseLayer: Phaser.GameObjects.Layer) {
         this.input.keyboard.on('keydown', function (event) {
             if ([Phaser.Input.Keyboard.KeyCodes.P, Phaser.Input.Keyboard.KeyCodes.ESC].includes(event.keyCode)) {
                 pauseLayer.setVisible(!pauseLayer.visible);
+                scene.scene.pause();
+                scene.scene.launch('pause');
             }
         });
 
         this.input.on('pointerdown', function () {
             this.cameras.main.shake(300);
             this.playerData = { hp: this.playerData.hp - 10 };
-            //this.dmgSound.play();
+            // this.dmgSound.play();
         }, this);
 
         this.cameras.main.on('camerashakestart', function () {
@@ -119,8 +121,16 @@ export default class Demo extends Phaser.Scene {
         }, this);
 
         this.cameras.main.on('camerashakecomplete', function () {
-            this.cameras.main.setBackgroundColor('#125555');
+            this.cameras.main.setBackgroundColor('rgb(18,84,84)');
         }, this);
+
+        this.events.on('pause', function () {
+            console.log('Scene A paused');
+        })
+
+        this.events.on('resume', function () {
+            console.log('Scene A resumed');
+        })
     }
 
     private setupWasdCursors() {
@@ -138,7 +148,10 @@ export default class Demo extends Phaser.Scene {
         this.updatePlayerVelocity({player: this.player, cursors: this.cursors, speed: this.playerSpeed});
         this.posText.setText(`x: ${Math.round(this.player.x)}, y: ${Math.round(this.player.y)}`);
         this.playerDataText.setText(`hp: ${this.playerData.hp}`);
-        this.depthText.setText(`${Math.round(this.player.x / 20)} m`);
+        let meters = Math.round(this.player.x / 20)
+        this.depthText.setText(`${meters} m`);
+        // let dp = 1 - meters / 200;
+        // this.cameras.main.setBackgroundColor(`rgb(${Math.round(18 * dp)}, ${Math.round(84 * dp)}, ${Math.round(84 * dp)})`);
         // this.physics.world.wrap(this.player, 800);
     }
 
@@ -163,18 +176,33 @@ export class Pause extends Phaser.Scene {
         super('pause');
     }
 
+    Pause = () => {
+        Phaser.Scene.call(this, { key: 'sceneB' });
+    }
+
+    preload () {
+        this.load.image('face', 'assets/dude.png');
+    }
+
     create () {
         const pauseLayer = this.add.layer().setDepth(20);
+        this.add.image(400, 300, 'face').setAlpha(0.5);
+
+        this.input.once('pointerdown', function () {
+
+            this.scene.resume('game');
+
+        }, this);
     }
 }
 
 const config = {
     antialias: false,
     type: Phaser.AUTO,
-    backgroundColor: '#125555',
+    backgroundColor: 'rgb(18,84,84)',
     width: 900,
     height: 800,
-    scene: Demo,
+    scene: [ Demo, Pause ],
     physics: {
         default: 'matter',
         matter: {
