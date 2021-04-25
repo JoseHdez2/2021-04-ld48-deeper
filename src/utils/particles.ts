@@ -1,9 +1,10 @@
 
-export const playerParticles = ({scene, ship}: {scene: Phaser.Scene, ship: Phaser.Physics.Matter.Image}) => {
-    var particles = scene.add.particles('space');
+export const playerParticles = ({scene, ship, texture, frame}: 
+    {scene: Phaser.Scene, ship: Phaser.Physics.Matter.Image, texture: string, frame: string}) => {
+    var particles = scene.add.particles(texture);
 
     var emitter = particles.createEmitter({
-        frame: 'blue',
+        frame: frame,
         speed: {
             onEmit: function (particle, key, t, value)
             {

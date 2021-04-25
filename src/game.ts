@@ -1,4 +1,5 @@
 import 'phaser';
+import { setupMinimap } from './minimap';
 
 import { createStrokeText } from "./utils/text";
 import { addVerticalSineTween } from './utils/tweens';
@@ -29,8 +30,8 @@ export default class Demo extends Phaser.Scene
     create ()
     {
         const gameplayLayer = this.add.layer();
-        const uiLayer = this.add.layer();
-        const pauseLayer = this.add.layer();
+        const uiLayer = this.add.layer().setDepth(10);
+        const pauseLayer = this.add.layer().setDepth(20);
 
         uiLayer.add(this.add.text(10, 10, 'DEEPER BLUE DEMO v0.1').setScrollFactor(0));
         this.posText = this.add.text(10, 25, `x: ???, y: ???`).setScrollFactor(0);
@@ -51,12 +52,7 @@ export default class Demo extends Phaser.Scene
             gameplayLayer.add(this.make.sprite({ x, y, key: 'atlas', frame: 'bubble' }));
         }
 
-        this.cursors = this.input.keyboard.createCursorKeys();
-        this.cursors = this.input.keyboard.addKeys(
-          {up:Phaser.Input.Keyboard.KeyCodes.W,
-          down:Phaser.Input.Keyboard.KeyCodes.S,
-          left:Phaser.Input.Keyboard.KeyCodes.A,
-          right:Phaser.Input.Keyboard.KeyCodes.D});
+        this.setupWasdCursors();
 
         const mainCam = this.cameras.main;
 
@@ -75,16 +71,20 @@ export default class Demo extends Phaser.Scene
         // }, stroke: {color: "blue", size: 6}});
         // addVerticalSineTweens({scene: this, target: titleText, y: 100, duration: 10_000});
 
-        const minimapCam = this.cameras.add(mainCam.width - 220, mainCam.height - 220, 200, 200).setZoom(0.25).setBackgroundColor("rgba(0, 0, 0, 0.2)");
-        var minimapBorder = this.add.rectangle(minimapCam.x + 100, minimapCam.y + 100, minimapCam.width, minimapCam.height).setScrollFactor(0);
-        minimapBorder.setStrokeStyle(4, 0x1a65ac);
-        this.add.text(minimapCam.x, minimapCam.y - 20, 'Minimap').setScrollFactor(0);
-        minimapCam.ignore(uiLayer.getChildren());
-        minimapCam.ignore(pauseLayer.getChildren());
-              
-        this.cameras.main.startFollow(this.player, true);
-        minimapCam.startFollow(this.player, true);
+        setupMinimap(this, this.player, mainCam, uiLayer, pauseLayer);
 
+        // this.physics.add.overlap(bullets, enemies, this.hitEnemy, this.checkBulletVsEnemy, this);
+
+        this.setupInputEvents(pauseLayer);
+
+        this.player.setFixedRotation();
+        this.player.setFrictionAir(0.2);
+        this.player.setMass(30);
+    }
+
+    playerSpeed = 0.1;
+
+    private setupInputEvents(pauseLayer: Phaser.GameObjects.Layer) {
         this.input.keyboard.on('keydown', function (event) {
             if ([Phaser.Input.Keyboard.KeyCodes.P, Phaser.Input.Keyboard.KeyCodes.ESC].includes(event.keyCode)) {
                 pauseLayer.setVisible(!pauseLayer.visible);
@@ -93,27 +93,31 @@ export default class Demo extends Phaser.Scene
 
         this.input.on('pointerdown', function () {
             this.cameras.main.shake(300);
-            this.playerData = {hp: this.playerData.hp - 10}
+            this.playerData = { hp: this.playerData.hp - 10 };
         }, this);
 
-        this.cameras.main.on('camerashakestart', function () {   
+        this.cameras.main.on('camerashakestart', function () {
             this.cameras.main.setBackgroundColor('rgba(255, 0, 0, 0.5)');
         }, this);
 
         this.cameras.main.on('camerashakecomplete', function () {
             this.cameras.main.setBackgroundColor('#125555');
         }, this);
-
-        this.player.setFixedRotation();
-        this.player.setAngle(270);
-        this.player.setFrictionAir(0.05);
-        this.player.setMass(30);
     }
 
-    speed = 300;
+    private setupWasdCursors() {
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.cursors = this.input.keyboard.addKeys(
+            {
+                up: Phaser.Input.Keyboard.KeyCodes.W,
+                down: Phaser.Input.Keyboard.KeyCodes.S,
+                left: Phaser.Input.Keyboard.KeyCodes.A,
+                right: Phaser.Input.Keyboard.KeyCodes.D
+            });
+    }
 
     update() {
-        this.updatePlayerVelocity({player: this.player, cursors: this.cursors, speed: this.speed});
+        this.updatePlayerVelocity({player: this.player, cursors: this.cursors, speed: this.playerSpeed});
         this.posText.setText(`x: ${Math.round(this.player.x)}, y: ${Math.round(this.player.y)}`);
         this.playerDataText.setText(`hp: ${this.playerData.hp}`);
         // this.physics.world.wrap(this.player, 800);
@@ -121,15 +125,15 @@ export default class Demo extends Phaser.Scene
 
     private updatePlayerVelocity({player, cursors, speed}) {
         if (cursors.left.isDown) {
-            player.thrustLeft(0.1);
+            player.thrustBack(speed);
         } else if (this.cursors.right.isDown) {
-            player.thrustRight(0.1);
+            player.thrust(speed);
         }
 
         if (cursors.up.isDown) {
-            player.thrust(0.1);
+            player.thrustLeft(speed);
         } else if (cursors.down.isDown) {
-            player.thrustBack(0.1);
+            player.thrustRight(speed);
         }
     }
 }
