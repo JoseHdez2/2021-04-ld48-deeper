@@ -17,8 +17,8 @@ export default class Demo extends Phaser.Scene {
 
     preload ()
     {
-        //this.load.audio("theme", [musicFile]);
-        this.load.audio("dmg", ["assets/audio/dash1.ogg", "assets/audio/damaged.mp3"]);
+        this.load.audio("level1", "assets/audio/shipping-lanes.ogg");
+        this.load.audio("damage", "assets/audio/dash1.ogg");
         this.load.image("dude", 'assets/dude.png');
         this.load.atlas('atlas', "assets/ld48-a.png", 'assets/atlas.json');
     }
@@ -32,7 +32,8 @@ export default class Demo extends Phaser.Scene {
     isPaused = false
 
     bullets
-    //dmgSound = null
+    dmgSound : Phaser.Sound.BaseSound
+    musicLevel1 : Phaser.Sound.BaseSound
 
     // pauseLayer : Phaser.GameObjects.Layer
 
@@ -43,7 +44,9 @@ export default class Demo extends Phaser.Scene {
         const gameplayLayer = this.add.layer();
         const uiLayer = this.add.layer().setDepth(10);
         const pauseLayer = this.add.layer().setDepth(20);
-        //this.dmgSound = this.sound.add('dmg');
+        this.dmgSound = this.sound.add('damage');
+        this.musicLevel1 = this.sound.add('level1');
+        this.musicLevel1.play({ volume: 0.3 });
 
         uiLayer.add(this.add.text(10, 10, 'DEEPER BLUE DEMO v0.1').setScrollFactor(0));
         this.posText = this.add.text(10, 25, `x: ???, y: ???`).setScrollFactor(0);
@@ -55,6 +58,9 @@ export default class Demo extends Phaser.Scene {
         uiLayer.add(this.depthText);
 
         this.player = this.matter.add.image(200, 200, 'atlas', 'sub').setScale(3);
+
+        let jellyGroup = this.add.group();
+        // jellyGroup.createMultiple()
 
         //this.bullets = new Bullets(this);
 
@@ -112,7 +118,7 @@ export default class Demo extends Phaser.Scene {
         this.input.on('pointerdown', function () {
             this.cameras.main.shake(300, 0.01);
             this.playerData = { hp: this.playerData.hp - 10 };
-            this.sound.play("dmg");
+            this.dmgSound.play();
         }, this);
 
         this.cameras.main.on('camerashakestart', function () {
