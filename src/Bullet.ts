@@ -1,6 +1,5 @@
-// import 'phaser';
 
-export const Bullet = new Class({
+export const Bullet = {
 
     Extends: Phaser.Physics.Arcade.Image,
 
@@ -56,4 +55,4 @@ export const Bullet = new Class({
         this.setVisible(false);
         this.body.stop();
     },
-});
+};

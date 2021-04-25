@@ -1,9 +1,13 @@
 import 'phaser';
 import { Bullet } from './Bullet';
+import { Bullets } from './Bullets';
 import { setupMinimap } from './minimap';
 
 import { createStrokeText } from "./utils/text";
 import { addVerticalSineTween } from './utils/tweens';
+
+const pauseKeys = [Phaser.Input.Keyboard.KeyCodes.ESC, Phaser.Input.Keyboard.KeyCodes.P];
+const shootKeys = [Phaser.Input.Keyboard.KeyCodes.SPACE, Phaser.Input.Keyboard.KeyCodes.X];
 
 export default class Demo extends Phaser.Scene {
     constructor ()
@@ -14,7 +18,7 @@ export default class Demo extends Phaser.Scene {
     preload ()
     {
         //this.load.audio("theme", [musicFile]);
-        // this.load.audio('dmg', 'assets/audio/dash1.wav');
+        this.load.audio("dmg", ["assets/audio/dash1.ogg", "assets/audio/damaged.mp3"]);
         this.load.image("dude", 'assets/dude.png');
         this.load.atlas('atlas', "assets/ld48-a.png", 'assets/atlas.json');
     }
@@ -28,7 +32,7 @@ export default class Demo extends Phaser.Scene {
     isPaused = false
 
     bullets
-    // dmgSound = null
+    //dmgSound = null
 
     // pauseLayer : Phaser.GameObjects.Layer
 
@@ -39,7 +43,7 @@ export default class Demo extends Phaser.Scene {
         const gameplayLayer = this.add.layer();
         const uiLayer = this.add.layer().setDepth(10);
         const pauseLayer = this.add.layer().setDepth(20);
-        // this.dmgSound = this.sound.add('dmg');
+        //this.dmgSound = this.sound.add('dmg');
 
         uiLayer.add(this.add.text(10, 10, 'DEEPER BLUE DEMO v0.1').setScrollFactor(0));
         this.posText = this.add.text(10, 25, `x: ???, y: ???`).setScrollFactor(0);
@@ -52,11 +56,7 @@ export default class Demo extends Phaser.Scene {
 
         this.player = this.matter.add.image(200, 200, 'atlas', 'sub').setScale(3);
 
-        // this.bullets = this.physics.add.group({
-        //     classType: Bullet,
-        //     maxSize: 30,
-        //     runChildUpdate: true
-        // });
+        //this.bullets = new Bullets(this);
 
         // this.player.setCollideWorldBounds(true);
 
@@ -81,13 +81,6 @@ export default class Demo extends Phaser.Scene {
         pauseLayer.add(pauseTitle);
         pauseLayer.setVisible(false);
 
-        // var titleText = createStrokeText({thiz: this, x: 100, y: 20, text: "DEEPER BLUE", style: {
-        //   fontFamily: "Arial Black",
-        //   fontSize: 74,
-        //   color: "white"
-        // }, stroke: {color: "blue", size: 6}});
-        // addVerticalSineTweens({scene: this, target: titleText, y: 100, duration: 10_000});
-
         setupMinimap(0.15, this, this.player, mainCam, uiLayer, pauseLayer);
 
         // this.physics.add.overlap(bullets, enemies, this.hitEnemy, this.checkBulletVsEnemy, this);
@@ -97,23 +90,29 @@ export default class Demo extends Phaser.Scene {
         this.player.setFixedRotation();
         this.player.setFrictionAir(0.05);
         this.player.setMass(400);
+
     }
 
     playerSpeed = 0.2;
 
     private setupInputEvents(scene: Phaser.Scene, pauseLayer: Phaser.GameObjects.Layer) {
         this.input.keyboard.on('keydown', function (event) {
-            if ([Phaser.Input.Keyboard.KeyCodes.P, Phaser.Input.Keyboard.KeyCodes.ESC].includes(event.keyCode)) {
-                pauseLayer.setVisible(!pauseLayer.visible);
-                scene.scene.pause();
-                scene.scene.launch('pause');
+            if (pauseKeys.includes(event.keyCode)) {
+                // pauseLayer.setVisible(!pauseLayer.visible);
+                // scene.scene.pause();
+                // scene.scene.launch('pause');
+            }
+        });
+        this.input.keyboard.on('keydown', function (event) {
+             if (shootKeys.includes(event.keyCode)) {
+                //this.bullets.fireBullet(this.ship.x, this.ship.y);
             }
         });
 
         this.input.on('pointerdown', function () {
-            this.cameras.main.shake(300);
+            this.cameras.main.shake(300, 0.01);
             this.playerData = { hp: this.playerData.hp - 10 };
-            // this.dmgSound.play();
+            this.sound.play("dmg");
         }, this);
 
         this.cameras.main.on('camerashakestart', function () {
@@ -144,7 +143,7 @@ export default class Demo extends Phaser.Scene {
             });
     }
 
-    update() {
+    update(time) {
         this.updatePlayerVelocity({player: this.player, cursors: this.cursors, speed: this.playerSpeed});
         this.posText.setText(`x: ${Math.round(this.player.x)}, y: ${Math.round(this.player.y)}`);
         this.playerDataText.setText(`hp: ${this.playerData.hp}`);
@@ -186,13 +185,19 @@ export class Pause extends Phaser.Scene {
 
     create () {
         const pauseLayer = this.add.layer().setDepth(20);
-        this.add.image(400, 300, 'face').setAlpha(0.5);
+        this.add.image(400, 300, 'face').setAlpha(0.1);
+        
+        this.setupInputEvents(this, pauseLayer);
+    }
 
-        this.input.once('pointerdown', function () {
-
-            this.scene.resume('game');
-
-        }, this);
+    private setupInputEvents(scene: Phaser.Scene, pauseLayer: Phaser.GameObjects.Layer) {
+        this.input.keyboard.on('keydown', function (event) {
+            if (pauseKeys.includes(event.keyCode)) {
+                pauseLayer.setVisible(!pauseLayer.visible);
+                scene.scene.resume('game');
+                scene.scene.remove('pause');
+            }
+        });
     }
 }
 
