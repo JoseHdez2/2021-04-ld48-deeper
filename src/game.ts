@@ -5,8 +5,7 @@ import { setupMinimap } from './minimap';
 import { createStrokeText } from "./utils/text";
 import { addVerticalSineTween } from './utils/tweens';
 
-export default class Demo extends Phaser.Scene
-{
+export default class Demo extends Phaser.Scene {
     constructor ()
     {
         super('demo');
@@ -15,6 +14,7 @@ export default class Demo extends Phaser.Scene
     preload ()
     {
         // this.load.audio("theme", [musicFile]);
+        //this.load.audio('dmg', 'assets/audio/dash1.wav');
         this.load.image("dude", 'assets/dude.png');
         this.load.atlas('atlas', "assets/ld48-a.png", 'assets/atlas.json');
     }
@@ -24,24 +24,31 @@ export default class Demo extends Phaser.Scene
     cursors: any
     posText : Phaser.GameObjects.Text
     playerDataText : Phaser.GameObjects.Text
+    depthText : Phaser.GameObjects.Text
     isPaused = false
 
     bullets
+    //dmgSound = null;
 
     // pauseLayer : Phaser.GameObjects.Layer
 
     create ()
     {
+        const mainCam = this.cameras.main;
+
         const gameplayLayer = this.add.layer();
         const uiLayer = this.add.layer().setDepth(10);
         const pauseLayer = this.add.layer().setDepth(20);
+        //this.dmgSound = this.sound.add('dmg');
 
         uiLayer.add(this.add.text(10, 10, 'DEEPER BLUE DEMO v0.1').setScrollFactor(0));
         this.posText = this.add.text(10, 25, `x: ???, y: ???`).setScrollFactor(0);
         this.playerDataText = this.add.text(10, 45, `hp: ???`).setScrollFactor(0);
+        this.depthText = this.add.text(mainCam.width / 2 - 20, mainCam.height / 2 - 40, `??? m`).setScrollFactor(0);
 
         uiLayer.add(this.posText);
         uiLayer.add(this.playerDataText);
+        uiLayer.add(this.depthText);
 
         this.player = this.matter.add.image(200, 200, 'atlas', 'sub').setScale(3);
 
@@ -53,17 +60,18 @@ export default class Demo extends Phaser.Scene
 
         // this.player.setCollideWorldBounds(true);
 
+        this.anims.create({ key: 'jellyfish', frames: this.anims.generateFrameNames('sea', { prefix: 'jellyfish', end: 2 }), repeat: -1 });
+
         for (let i = 0; i < 32; i++)
         {
-            let x = Phaser.Math.Between(-800, 800);
-            let y = Phaser.Math.Between(-800, 800);
+            let x = Phaser.Math.Between(-2000, 2000);
+            let y = Phaser.Math.Between(-2000, 2000);
 
-            gameplayLayer.add(this.make.sprite({ x, y, key: 'atlas', frame: 'jellyfish' }));
+            gameplayLayer.add(this.make.sprite({ x, y, key: 'atlas', frame: 'jellyfish1', scale: 3 }));
         }
 
         this.setupWasdCursors();
 
-        const mainCam = this.cameras.main;
 
         let pauseTitle = createStrokeText({thiz: this, x: mainCam.width / 2 - 30, y: 20, text: "PAUSE", style: {
             fontFamily: "Arial Black",
@@ -87,11 +95,11 @@ export default class Demo extends Phaser.Scene
         this.setupInputEvents(pauseLayer);
 
         this.player.setFixedRotation();
-        this.player.setFrictionAir(0.2);
-        this.player.setMass(30);
+        this.player.setFrictionAir(0.05);
+        this.player.setMass(400);
     }
 
-    playerSpeed = 0.1;
+    playerSpeed = 0.2;
 
     private setupInputEvents(pauseLayer: Phaser.GameObjects.Layer) {
         this.input.keyboard.on('keydown', function (event) {
@@ -103,6 +111,7 @@ export default class Demo extends Phaser.Scene
         this.input.on('pointerdown', function () {
             this.cameras.main.shake(300);
             this.playerData = { hp: this.playerData.hp - 10 };
+            //this.dmgSound.play();
         }, this);
 
         this.cameras.main.on('camerashakestart', function () {
@@ -129,6 +138,7 @@ export default class Demo extends Phaser.Scene
         this.updatePlayerVelocity({player: this.player, cursors: this.cursors, speed: this.playerSpeed});
         this.posText.setText(`x: ${Math.round(this.player.x)}, y: ${Math.round(this.player.y)}`);
         this.playerDataText.setText(`hp: ${this.playerData.hp}`);
+        this.depthText.setText(`${Math.round(this.player.x / 20)} m`);
         // this.physics.world.wrap(this.player, 800);
     }
 
@@ -144,6 +154,17 @@ export default class Demo extends Phaser.Scene
         } else if (cursors.down.isDown) {
             player.thrustRight(speed);
         }
+    }
+}
+
+export class Pause extends Phaser.Scene {
+    constructor ()
+    {
+        super('pause');
+    }
+
+    create () {
+        const pauseLayer = this.add.layer().setDepth(20);
     }
 }
 
