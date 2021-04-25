@@ -1,10 +1,10 @@
-export const createStrokeText = ({thiz, x, y, text, style, stroke}) => {
-    console.log(thiz);
-    var text4 = thiz.add.text(x, y, text, style);
+export const createStrokeText = ({thiz, x, y, text, style, stroke}: 
+  {thiz: Phaser.Scene, x: number, y: number, text: string, style: any, stroke: any}) : Phaser.GameObjects.Text => {
+    let textGameObj = thiz.add.text(x, y, text, style);
     if(stroke){
-      text4.setStroke(stroke.color || "black", stroke.size || 1);
+      textGameObj.setStroke(stroke.color || "black", stroke.size || 1);
     }
-    // text4.setStroke("#de77ae", 16);
+    return textGameObj;
   };
   
   export const createText = ({thiz, x, y, text, style, stroke}) => {
@@ -12,6 +12,7 @@ export const createStrokeText = ({thiz, x, y, text, style, stroke}) => {
     if(stroke){
       text.setStroke(stroke.color || "black", stroke.size || 0);
     }
+    return text;
     // {
     //   fontFamily: "Arial Black",
     //   fontSize: 74,
