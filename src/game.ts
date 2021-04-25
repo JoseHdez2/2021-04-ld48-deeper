@@ -60,14 +60,14 @@ export default class Demo extends Phaser.Scene {
 
         // this.player.setCollideWorldBounds(true);
 
-        this.anims.create({ key: 'jellyfish', frames: this.anims.generateFrameNames('sea', { prefix: 'jellyfish', end: 2 }), repeat: -1 });
+        this.anims.create({ key:'jellyfish', frames: this.anims.generateFrameNames('atlas', { prefix: 'jellyfish', end: 2 }), repeat: -1, frameRate: 2});
 
         for (let i = 0; i < 32; i++)
         {
             let x = Phaser.Math.Between(-2000, 2000);
             let y = Phaser.Math.Between(-2000, 2000);
 
-            gameplayLayer.add(this.make.sprite({ x, y, key: 'atlas', frame: 'jellyfish1', scale: 3 }));
+            gameplayLayer.add(this.make.sprite({ x, y, key: 'atlas', frame: 'jellyfish1', scale: 3 }).play('jellyfish'));
         }
 
         this.setupWasdCursors();
