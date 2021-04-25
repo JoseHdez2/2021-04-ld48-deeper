@@ -6,6 +6,9 @@ import { setupMinimap } from './minimap';
 import { createStrokeText } from "./utils/text";
 import { addVerticalSineTween } from './utils/tweens';
 
+import { FunnyJellyfish, Jellyfish } from './Jellyfish'
+import { IBound } from 'matter';
+
 const pauseKeys = [Phaser.Input.Keyboard.KeyCodes.ESC, Phaser.Input.Keyboard.KeyCodes.P];
 const shootKeys = [Phaser.Input.Keyboard.KeyCodes.SPACE, Phaser.Input.Keyboard.KeyCodes.X];
 
@@ -57,7 +60,7 @@ export default class Demo extends Phaser.Scene {
         uiLayer.add(this.playerDataText);
         uiLayer.add(this.depthText);
 
-        this.player = this.matter.add.image(200, 200, 'atlas', 'sub').setScale(3);
+        this.player = this.matter.add.image(0, 0, 'atlas', 'sub').setScale(3);
 
         let jellyGroup = this.add.group();
         // jellyGroup.createMultiple()
@@ -68,13 +71,9 @@ export default class Demo extends Phaser.Scene {
 
         this.anims.create({ key:'jellyfish', frames: this.anims.generateFrameNames('atlas', { prefix: 'jellyfish', end: 2 }), repeat: -1, frameRate: 2});
 
-        for (let i = 0; i < 32; i++)
-        {
-            let x = Phaser.Math.Between(-2000, 2000);
-            let y = Phaser.Math.Between(-2000, 2000);
-
-            gameplayLayer.add(this.make.sprite({ x, y, key: 'atlas', frame: 'jellyfish1', scale: 3 }).play('jellyfish'));
-        }
+        let bounds = {min: {x: -0, y: -1000}, max: {x: 2000, y: 1000}}
+        this.createMany(32, bounds, 
+            (scene, x, y) => new FunnyJellyfish(scene, x, y), gameplayLayer);
 
         this.setupWasdCursors();
 
@@ -100,6 +99,15 @@ export default class Demo extends Phaser.Scene {
     }
 
     playerSpeed = 0.2;
+
+    private createMany(n: number, bounds: IBound, addCallback: Function, gameplayLayer: Phaser.GameObjects.Layer) {
+        for (let i = 0; i < n; i++) {
+            let x = Phaser.Math.Between(bounds.min.x, bounds.max.x);
+            let y = Phaser.Math.Between(bounds.min.y, bounds.max.y);
+
+            gameplayLayer.add(this.add.existing(addCallback(this, x, y)));
+        }
+    }
 
     private setupInputEvents(scene: Phaser.Scene, pauseLayer: Phaser.GameObjects.Layer) {
         this.input.keyboard.on('keydown', function (event) {

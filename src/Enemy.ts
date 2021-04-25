@@ -1,65 +1,32 @@
-var Enemy = new Class({
+export abstract class Enemy extends Phaser.GameObjects.Sprite {
+    public hp : number;
+    public enemyName : string;
+    public speed : number;
 
-    Extends: Phaser.Physics.Arcade.Sprite,
+    public idleAnimation : string;
+    public hurtSound : string;
 
-    initialize:
-
-    function Enemy (scene, spaceOuter, spaceInner)
+    constructor (scene, x, y, 
+        hp: number,
+        enemyName: string = "enemy",
+        speed: number = 1,
+        scale: number = 3,
+        idleAnimation? : string, 
+        hurtSound : string = "damage")
     {
-        Phaser.Physics.Arcade.Sprite.call(this, scene, 0, 0, 'mine-sheet');
+        super(scene, x, y, null);
 
-        this.setDepth(1);
+        this.hp = hp;
+        this.enemyName = enemyName;
+        this.speed = speed;
 
-        this.speed = 100;
-        this.checkOutOfBounds = false;
-        this.target = new Phaser.Math.Vector2();
-        this.spaceOuter = spaceOuter;
-        this.spaceInner = spaceInner;
-    },
+        this.hurtSound = hurtSound;
 
-    launch: function ()
-    {
-        this.play('mine-anim');
-
-        this.checkOutOfBounds = false;
-
-        var p = Phaser.Geom.Rectangle.RandomOutside(this.spaceOuter, this.spaceInner);
-        
-        this.spaceInner.getRandomPoint(this.target);
-
-        this.speed = Phaser.Math.Between(100, 400);
-
-        this.setActive(true);
-        this.setVisible(true);
-        this.setPosition(p.x, p.y);
-
-        this.body.reset(p.x, p.y);
-
-        var angle = Phaser.Math.Angle.BetweenPoints(p, this.target);
-
-        this.scene.physics.velocityFromRotation(angle, this.speed, this.body.velocity);
-    },
-
-    update: function (time, delta)
-    {
-        var withinGame = this.spaceInner.contains(this.x, this.y);
-
-        if (!this.checkOutOfBounds && withinGame)
-        {
-            this.checkOutOfBounds = true;
+        this.setScale(scale);
+        this.setPosition(x, y);
+        if(idleAnimation){
+            this.play(idleAnimation);
         }
-        else if (this.checkOutOfBounds && !withinGame)
-        {
-            this.kill();
-        }
-    },
-
-    kill: function ()
-    {
-        this.setActive(false);
-        this.setVisible(false);
-        this.body.stop();
-        this.scene.launchEnemy();
     }
 
-});
+}
