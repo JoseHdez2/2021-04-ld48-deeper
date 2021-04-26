@@ -2,7 +2,7 @@ import { Enemy } from "./Enemy";
 
 export class Jellyfish extends Enemy {
 
-    constructor (scene, x, y)
+    constructor (scene: Phaser.Scene, x: number, y: number)
     {
         super(scene, x, y, 
             2, "jellyfish", 1, 3, "jellyfish");

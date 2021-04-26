@@ -58,9 +58,7 @@ export default class Demo extends Phaser.Scene {
         uiLayer.add(this.depthText);
 
         this.player = this.matter.add.image(0, 0, 'atlas', 'sub').setScale(3);
-
-        this.matter.add.image(50, 50, 'atlas', 'sub').setScale(3);
-
+        this.player.name = "player";
 
         let jellyGroup = this.add.group();
         // jellyGroup.createMultiple()
@@ -96,6 +94,7 @@ export default class Demo extends Phaser.Scene {
         this.player.setFrictionAir(0.05);
         this.player.setMass(400);
 
+        //     Phaser.Actions.PlaceOnCircle(balls.getChildren(), { x: 0, y: 0, radius: 300 });
     }
 
     playerSpeed = 0.2;
@@ -116,20 +115,21 @@ export default class Demo extends Phaser.Scene {
                 // scene.scene.pause();
                 // scene.scene.launch('pause');
             }
-        });
-        this.input.keyboard.on('keydown', function (event) {
-             if (shootKeys.includes(event.keyCode)) {
-                
+            if (shootKeys.includes(event.keyCode)) {
+                // this.dmgSound.play({volume: 0.1});
                 //this.bullets.fireBullet(this.ship.x, this.ship.y);
             }
         });
 
-        this.input.on('pointerdown', function () {
+        
+        const damagePlayer = () => {
             this.cameras.main.shake(300, 0.01);
             this.playerData = { hp: this.playerData.hp - 10 };
             this.dmgSound.play({ volume: 0.25 });
-        }, this);
+        }
 
+        // this.input.on('pointerdown', () => damagePlayer(), this);
+        
         this.cameras.main.on('camerashakestart', function () {
             this.cameras.main.setBackgroundColor('rgba(255, 0, 0, 0.5)');
         }, this);
@@ -138,19 +138,18 @@ export default class Demo extends Phaser.Scene {
             this.cameras.main.setBackgroundColor('rgb(18,84,84)');
         }, this);
 
-        this.events.on('pause', function () {
-            console.log('Scene A paused');
-        })
+        let onCollision = (event, bodyA, bodyB) => {
+            let player = [bodyA, bodyB].find(b => b.gameObject.name === "player")
+            if(player) {
+                damagePlayer();
+            }
+            // bodyA.gameObject.setTint(0xff0000);
+            // bodyB.gameObject.setTint(0x00ff00);
+        }
 
-        this.events.on('resume', function () {
-            console.log('Scene A resumed');
-        })
-
-        this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
-            bodyA.gameObject.setTint(0xff0000);
-            bodyB.gameObject.setTint(0x00ff00);
-        });
+        this.matter.world.on('collisionstart', onCollision);
     }
+
 
     private setupWasdCursors() {
         this.cursors = this.input.keyboard.createCursorKeys();

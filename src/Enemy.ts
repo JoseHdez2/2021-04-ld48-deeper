@@ -1,4 +1,4 @@
-export abstract class Enemy extends Phaser.GameObjects.Sprite {
+export abstract class Enemy extends Phaser.Physics.Matter.Sprite {
     public hp : number;
     public enemyName : string;
     public speed : number;
@@ -6,7 +6,7 @@ export abstract class Enemy extends Phaser.GameObjects.Sprite {
     public idleAnimation : string;
     public hurtSound : string;
 
-    constructor (scene, x, y, 
+    constructor (scene: Phaser.Scene, x: number, y: number, 
         hp: number,
         enemyName: string = "enemy",
         speed: number = 1,
@@ -14,7 +14,7 @@ export abstract class Enemy extends Phaser.GameObjects.Sprite {
         idleAnimation? : string, 
         hurtSound : string = "damage")
     {
-        super(scene, x, y, null);
+        super(scene.matter.world, x, y, null);
 
         this.hp = hp;
         this.enemyName = enemyName;

@@ -1,16 +1,12 @@
 
-export const Bullet = {
+export class Bullet extends Phaser.Physics.Arcade.Image {
 
-    Extends: Phaser.Physics.Arcade.Image,
-
-    initialize:
-
-    function Bullet (scene)
-    {
-        Phaser.Physics.Arcade.Image.call(this, scene, 0, 0, 'space', 'blaster');
+    constructor(scene) {
+        super(scene, 0, 0, 'atlas', 'missile');
 
         this.setBlendMode(1);
         this.setDepth(1);
+
 
         this.speed = 800;
         this.lifespan = 1000;
@@ -18,8 +14,7 @@ export const Bullet = {
         this._temp = new Phaser.Math.Vector2();
     },
 
-    fire: function (ship)
-    {
+    fire(ship) {
         this.lifespan = 1000;
 
         this.setActive(true);
@@ -39,8 +34,7 @@ export const Bullet = {
         this.body.velocity.y *= 2;
     },
 
-    update: function (time, delta)
-    {
+    update(time, delta) {
         this.lifespan -= delta;
 
         if (this.lifespan <= 0)
@@ -49,8 +43,7 @@ export const Bullet = {
         }
     },
 
-    kill: function ()
-    {
+    kill() {
         this.setActive(false);
         this.setVisible(false);
         this.body.stop();
