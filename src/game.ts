@@ -1,10 +1,7 @@
 import 'phaser';
-import { Bullet } from './Bullet';
-import { Bullets } from './Bullets';
 import { setupMinimap } from './minimap';
 
 import { createStrokeText } from "./utils/text";
-import { addVerticalSineTween } from './utils/tweens';
 
 import { FunnyJellyfish, Jellyfish } from './Jellyfish'
 import { IBound } from 'matter';
@@ -61,6 +58,9 @@ export default class Demo extends Phaser.Scene {
         uiLayer.add(this.depthText);
 
         this.player = this.matter.add.image(0, 0, 'atlas', 'sub').setScale(3);
+
+        this.matter.add.image(50, 50, 'atlas', 'sub').setScale(3);
+
 
         let jellyGroup = this.add.group();
         // jellyGroup.createMultiple()
@@ -119,6 +119,7 @@ export default class Demo extends Phaser.Scene {
         });
         this.input.keyboard.on('keydown', function (event) {
              if (shootKeys.includes(event.keyCode)) {
+                
                 //this.bullets.fireBullet(this.ship.x, this.ship.y);
             }
         });
@@ -126,7 +127,7 @@ export default class Demo extends Phaser.Scene {
         this.input.on('pointerdown', function () {
             this.cameras.main.shake(300, 0.01);
             this.playerData = { hp: this.playerData.hp - 10 };
-            this.dmgSound.play();
+            this.dmgSound.play({ volume: 0.25 });
         }, this);
 
         this.cameras.main.on('camerashakestart', function () {
@@ -144,6 +145,11 @@ export default class Demo extends Phaser.Scene {
         this.events.on('resume', function () {
             console.log('Scene A resumed');
         })
+
+        this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
+            bodyA.gameObject.setTint(0xff0000);
+            bodyB.gameObject.setTint(0x00ff00);
+        });
     }
 
     private setupWasdCursors() {
